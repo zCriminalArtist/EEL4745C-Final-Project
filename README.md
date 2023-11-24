@@ -18,4 +18,4 @@ My project is to create a clone of the then popular Flappy Bird mobile game on t
 - Pipe struct (tracks X and Y position)
 - Arrays for ceiling pipes and ground pipes
 
-![Testing transparent sprite rendering with scaling](https://raw.githubusercontent.com/zCriminalArtist/EEL4745C-Final-Project/repo/master/rendering.png "Testing transparent sprite rendering with scaling")
+![Testing transparent sprite rendering with scaling](https://raw.githubusercontent.com/zCriminalArtist/EEL4745C-Final-Project/master/rendering.png "Testing transparent sprite rendering with scaling")
