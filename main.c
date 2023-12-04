@@ -15,8 +15,6 @@
 
 #include "./threads.h"
 
-#include "./sprites/bird.h"
-
 /************************************Includes***************************************/
 /***********************************Semaphores**************************************/
 
@@ -38,9 +36,13 @@ int main(void) {
     G8RTOS_Init();
     multimod_init();
 
-    ST7789_drawImage(100, 50, 17, 12, bird, 6);
+    G8RTOS_InitSemaphore(&sem_PCA9555_Debounce, 0);
+    G8RTOS_InitSemaphore(&sem_SPIA, 1);
 
+    G8RTOS_AddThread(Play_StartScreen, 0, "");
+    G8RTOS_AddThread(Check_ButtonPress, 0, "");
 
+    G8RTOS_Add_APeriodicEvent(GPIOE_Handler, 0, INT_GPIOE);
 
     G8RTOS_Launch();
     while (1);

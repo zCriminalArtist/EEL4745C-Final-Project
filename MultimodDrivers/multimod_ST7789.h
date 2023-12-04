@@ -108,7 +108,7 @@ void ST7789_Fill(uint16_t color);
 void ST7789_DrawPixel(uint16_t x, uint16_t y, uint16_t color);
 void ST7789_DrawLine(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t color);
 void ST7789_DrawRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color);
-void ST7789_drawImage(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t* image, uint16_t scale);
+void ST7789_drawImage(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t* image, uint16_t scale, uint16_t offset, uint16_t cutoff);
 
 /********************************Public Functions***********************************/
 

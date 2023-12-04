@@ -313,7 +313,7 @@ void ST7789_DrawPixel(uint16_t x, uint16_t y, uint16_t color) {
 	}
 }
 
-void ST7789_drawImage(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t* image, uint16_t scale) {
+void ST7789_drawImage(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t* image, uint16_t scale, uint16_t offset, uint16_t cutoff) {
 	if (!((x < X_MAX) && (y < Y_MAX) && w && h)) return;
 	uint16_t row = 0;
 	uint16_t col = 0;
@@ -323,7 +323,7 @@ void ST7789_drawImage(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t* 
 			col = 0;
 		}
 		if (image[px] != 0x0000) {
-			uint16_t pixel = image[px];
+			uint16_t pixel = image[offset + px];
 			uint16_t first5Bits = pixel & 0x001F;
 			uint16_t last5Bits = (pixel >> 11) & 0x001F;
 
@@ -340,6 +340,7 @@ void ST7789_drawImage(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t* 
 					col_adj = 0;
 					row_adj++;
 				}
+				if ((y + row + row_adj) < cutoff) continue;
 				ST7789_DrawPixel(x + col + col_adj, y + row + row_adj, pixel);
 				col_adj++;
 			}
