@@ -16,6 +16,9 @@
 #include "./sprites/gameover.h"
 #include "./sprites/ground_pipe.h"
 #include "./sprites/ceiling_pipe.h"
+#include "./sprites/zero.h"
+#include "./sprites/one.h"
+#include "./sprites/pause.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,14 +38,20 @@ struct bird bird = {140, 0};
 //struct pipe ceilingPipes[4];
 struct pipe groundPipe;
 struct pipe ceilingPipe;
+uint16_t score = 0;
+uint16_t round = 0;
 
 uint8_t playing = 0;
+uint8_t gameover = 0;
+uint8_t pause = 0;
 /*********************************Global Variables**********************************/
 
 /*************************************Threads***************************************/
 
 void Update_Bird(void) {
 	while(1) {
+
+		if (pause) continue;
 
 		if (bird.birdPosY > 70) {
 			G8RTOS_WaitSemaphore(&sem_SPIA);
@@ -51,11 +60,23 @@ void Update_Bird(void) {
 
 			bird.birdPosY -= bird.birdSpeed;
 			bird.birdSpeed += 1;
+
+			if (groundPipe.posX > 40 && groundPipe.posX < 110) {
+				if (bird.birdPosY < groundPipe.posY + 130 || bird.birdPosY > ceilingPipe.posY - 15) {
+					G8RTOS_WaitSemaphore(&sem_SPIA);
+					ST7789_drawImage(50, 170, 140, 34, gameover_sprite, 1, 0, 0);
+					G8RTOS_SignalSemaphore(&sem_SPIA);
+					playing = 0;
+					gameover = 1;
+				}
+			}
+
 		} else {
 			G8RTOS_WaitSemaphore(&sem_SPIA);
 			ST7789_drawImage(50, 170, 140, 34, gameover_sprite, 1, 0, 0);
 			G8RTOS_SignalSemaphore(&sem_SPIA);
 			playing = 0;
+			gameover = 1;
 		}
 
 		G8RTOS_WaitSemaphore(&sem_SPIA);
@@ -73,24 +94,66 @@ void Update_Bird(void) {
 void Update_Pipes(void) {
 	while(1) {
 
-		G8RTOS_WaitSemaphore(&sem_SPIA);
-		ST7789_DrawRectangle(groundPipe.posX + 43, 70, 5, 130, 0xCE0A);
-		G8RTOS_SignalSemaphore(&sem_SPIA);
+		if (pause) continue;
 
-		G8RTOS_WaitSemaphore(&sem_SPIA);
-		ST7789_DrawRectangle(ceilingPipe.posX + 43, ceilingPipe.posY, 5, 100, 0xCE0A);
-		G8RTOS_SignalSemaphore(&sem_SPIA);
+//		UARTprintf("PipX: %d\n", groundPipe.posX);
 
-		groundPipe.posX -= 7;
-		ceilingPipe.posX -= 7;
+		if (groundPipe.posX > -45) {
+			G8RTOS_WaitSemaphore(&sem_SPIA);
+			ST7789_DrawRectangle(groundPipe.posX + 36, 70, 9, groundPipe.posY + 130 - 70, 0xCE0A);
+			G8RTOS_SignalSemaphore(&sem_SPIA);
 
-		G8RTOS_WaitSemaphore(&sem_SPIA);
-		ST7789_drawImage(groundPipe.posX, groundPipe.posY, 44, 130, ground_pipe_sprite, 1, 0, 70);
-		G8RTOS_SignalSemaphore(&sem_SPIA);
+			G8RTOS_WaitSemaphore(&sem_SPIA);
+			ST7789_DrawRectangle(ceilingPipe.posX + 36, ceilingPipe.posY, 9, Y_MAX - ceilingPipe.posY, 0xCE0A);
+			G8RTOS_SignalSemaphore(&sem_SPIA);
 
-		G8RTOS_WaitSemaphore(&sem_SPIA);
-		ST7789_drawImage(ceilingPipe.posX, ceilingPipe.posY, 44, 130, ceiling_pipe_sprite, 1, 0, 0);
-		G8RTOS_SignalSemaphore(&sem_SPIA);
+			groundPipe.posX -= 10;
+			ceilingPipe.posX -= 10;
+			UARTprintf("PipY: %d\n", ceilingPipe.posY);
+//			if (ceilingPipe.posY > 130) {
+//				ceilingPipe.direction = 1;
+//			}
+			if (ceilingPipe.direction) {
+				ceilingPipe.posY += 4;
+				groundPipe.posY += 4;
+				if (ceilingPipe.posY > 250) ceilingPipe.direction = 0;
+			} else {
+				ceilingPipe.posY -= 4;
+				groundPipe.posY -= 4;
+				if (ceilingPipe.posY < 200) ceilingPipe.direction = 1;
+			}
+//			} else {
+//				ceilingPipe.posY -= 4;
+//				groundPipe.posY -= 4;
+//			}
+
+			if (ceilingPipe.posX < 70 && !round) {
+				score++;
+				round++;
+				PCA9556b_SetLED(score, 0xFF, 0xFF);
+			}
+
+			G8RTOS_WaitSemaphore(&sem_SPIA);
+			ST7789_drawImage(groundPipe.posX, groundPipe.posY, 46, 132, ground_pipe_sprite, 1, 0, 70);
+			G8RTOS_SignalSemaphore(&sem_SPIA);
+
+			G8RTOS_WaitSemaphore(&sem_SPIA);
+			ST7789_drawImage(ceilingPipe.posX, ceilingPipe.posY, 46, 132, ceiling_pipe_sprite, 1, 0, 0);
+			G8RTOS_SignalSemaphore(&sem_SPIA);
+
+			G8RTOS_WaitSemaphore(&sem_SPIA);
+			ST7789_drawImage(107, 230, 12, 19, one_sprite, 2, 0, 0);
+			G8RTOS_SignalSemaphore(&sem_SPIA);
+		} else {
+			groundPipe.posX = 240;
+			groundPipe.posY = rand() % 60;
+			ceilingPipe.posX = groundPipe.posX;
+			ceilingPipe.posY = groundPipe.posY + 130 + 60;
+			ceilingPipe.direction = 0;
+			round = 0;
+
+			score++;
+		}
 
 //		for (int i = 0; i < 2; i++) {
 //			G8RTOS_WaitSemaphore(&sem_SPIA);
@@ -113,7 +176,7 @@ void Update_Pipes(void) {
 //			G8RTOS_SignalSemaphore(&sem_SPIA);
 //		}
 
-		sleep(60);
+		sleep(400);
 
 		if (!playing) {
 			G8RTOS_KillSelf();
@@ -124,16 +187,19 @@ void Update_Pipes(void) {
 void Play_StartScreen(void) {
 	G8RTOS_WaitSemaphore(&sem_SPIA);
 	ST7789_DrawRectangle(0, 150, 240, 170, 0xCE0A);
-	ST7789_drawImage(0, 70, 240, 88, background_sprite, 1, 0, 0);
 	ST7789_drawImage(0, 0, 480, 70, floor_sprite, 1, 0, 0);
+	ST7789_drawImage(0, 69, 240, 88, background_sprite, 1, 0, 0);
 	ST7789_drawImage(70, 100, 100, 100, play_sprite, 1, 0, 0);
 	ST7789_drawImage(70, bird.birdPosY, 17, 12, bird_sprite, 2, 0, 0);
 	G8RTOS_SignalSemaphore(&sem_SPIA);
+	PCA9956b_SetAllOff();
+	score = 1;
+	round = 0;
 
 	uint16_t scroll = 0;
 
 	while(1) {
-		scroll += 3;
+		scroll += 8;
 
 		G8RTOS_WaitSemaphore(&sem_SPIA);
 		ST7789_drawImage(0, 0, 480, 70, floor_sprite, 1, scroll % 240, 0);
@@ -167,22 +233,38 @@ void Check_ButtonPress(void) {
 //					ceilingPipes[i].posX = groundPipes[i].posX;
 //					ceilingPipes[i].posY = groundPipes[i].posY + 130 + 60;
 //				}
-				groundPipe.posX = 360;
+				groundPipe.posX = 280;
 				groundPipe.posY = rand() % 60;
 				ceilingPipe.posX = groundPipe.posX;
 				ceilingPipe.posY = groundPipe.posY + 130 + 60;
+				ceilingPipe.direction = 0;
 
 			    G8RTOS_AddThread(Update_Bird, 0, "");
 			    G8RTOS_AddThread(Update_Pipes, 0, "");
+
+			    bird.birdSpeed = -7;
 			}
 		}
-
 		if (!(buttons & SW1)) {
-			if (bird.birdPosY <= 70) {
+			if (gameover) {
 				playing = 0;
+				gameover = 0;
 				bird.birdPosY = 140;
 				bird.birdSpeed = 0;
 				G8RTOS_AddThread(Play_StartScreen, 0, "");
+			} else if (playing) {
+				pause = !pause;
+				if (pause) {
+					G8RTOS_WaitSemaphore(&sem_SPIA);
+					ST7789_drawImage(15, 240, 15, 16, pause_sprite, 2, 0, 0);
+					G8RTOS_SignalSemaphore(&sem_SPIA);
+				} else {
+					G8RTOS_WaitSemaphore(&sem_SPIA);
+					ST7789_DrawRectangle(15, 240, 15*2, 18*2, 0xCE0A);
+					G8RTOS_SignalSemaphore(&sem_SPIA);
+				}
+//				score++;
+//				PCA9556b_SetLED(score, 0xFF, 0xFF);
 			}
 		}
 
@@ -191,14 +273,47 @@ void Check_ButtonPress(void) {
 	}
 }
 
+void Check_JoystickPress() {
+    while(1) {
+    	G8RTOS_WaitSemaphore(&sem_Joystick_Debounce);
+    	sleep(10);
+    	if (JOYSTICK_GetPress()) {
+    		if (playing) {
+    			bird.birdSpeed = -7;
+    		} else {
+    			playing = 1;
+    			G8RTOS_WaitSemaphore(&sem_SPIA);
+    			ST7789_DrawRectangle(0, 71, 240, 200, 0xCE0A);
+    			G8RTOS_SignalSemaphore(&sem_SPIA);
+
+    			groundPipe.posX = 280;
+    			groundPipe.posY = rand() % 60;
+    			ceilingPipe.posX = groundPipe.posX;
+    			ceilingPipe.posY = groundPipe.posY + 130 + 60;
+    			ceilingPipe.direction = 0;
+
+    			G8RTOS_AddThread(Update_Bird, 0, "");
+    			G8RTOS_AddThread(Update_Pipes, 0, "");
+
+    			bird.birdSpeed = -7;
+    		}
+    	}
+
+    	GPIOIntClear(JOYSTICK_INT_GPIO_BASE, JOYSTICK_INT_PIN);
+    	GPIOIntEnable(JOYSTICK_INT_GPIO_BASE, JOYSTICK_INT_PIN);
+    }
+}
 
 
 /********************************Periodic Threads***********************************/
 
 /*******************************Aperiodic Threads***********************************/
 void GPIOE_Handler() {
-    // Disable interrupt
 	GPIOIntDisable(BUTTONS_INT_GPIO_BASE, BUTTONS_INT_PIN);
-    // Signal relevant semaphore
 	G8RTOS_SignalSemaphore(&sem_PCA9555_Debounce);
+}
+
+void GPIOD_Handler() {
+	GPIOIntDisable(JOYSTICK_INT_GPIO_BASE, JOYSTICK_INT_PIN);
+	G8RTOS_SignalSemaphore(&sem_Joystick_Debounce);
 }

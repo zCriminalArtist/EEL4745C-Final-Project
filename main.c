@@ -37,12 +37,15 @@ int main(void) {
     multimod_init();
 
     G8RTOS_InitSemaphore(&sem_PCA9555_Debounce, 0);
+    G8RTOS_InitSemaphore(&sem_Joystick_Debounce, 0);
     G8RTOS_InitSemaphore(&sem_SPIA, 1);
 
     G8RTOS_AddThread(Play_StartScreen, 0, "");
     G8RTOS_AddThread(Check_ButtonPress, 0, "");
+    G8RTOS_AddThread(Check_JoystickPress, 0, "");
 
     G8RTOS_Add_APeriodicEvent(GPIOE_Handler, 0, INT_GPIOE);
+    G8RTOS_Add_APeriodicEvent(GPIOD_Handler, 0, INT_GPIOD);
 
     G8RTOS_Launch();
     while (1);

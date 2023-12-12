@@ -31,6 +31,15 @@ void PCA9956b_Init() {
     return;
 }
 
+void PCA9556b_SetLED(uint8_t LED, uint8_t PWM, uint8_t IREF) {
+    uint8_t bytes[] = {(~(AI_BIT) & 0x24 + LED), IREF};
+    I2C_WriteMultiple(I2C_A_BASE, PCA9956B_ADDR, bytes, 2);
+
+    bytes[0] = (~(AI_BIT) & 0x0C + LED);
+    bytes[1] = PWM;
+    I2C_WriteMultiple(I2C_A_BASE, PCA9956B_ADDR, bytes, 2);
+}
+
 // PCA9956b_SetAllMax
 // Writes to the IREFALL, PWMALL registers, sets LEDs to maximum.
 // Return: void

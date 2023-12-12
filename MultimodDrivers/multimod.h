@@ -13,10 +13,11 @@
 
 static void multimod_init() {
     ST7789_Init();
-    //PCA9956b_Init();
+    PCA9956b_Init();
     UART_Init();
 
     MultimodButtons_Init();
+    JOYSTICK_IntEnable();
 }
 
 #endif /* MULTIMOD_H_ */

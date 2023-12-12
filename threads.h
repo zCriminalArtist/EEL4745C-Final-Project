@@ -17,6 +17,7 @@
 
 /***********************************Semaphores**************************************/
 semaphore_t sem_PCA9555_Debounce;
+semaphore_t sem_Joystick_Debounce;
 semaphore_t sem_SPIA;
 
 /***********************************Semaphores**************************************/
@@ -28,8 +29,9 @@ struct bird {
 };
 
 struct pipe {
-	uint16_t posX;
-	uint16_t posY;
+	int16_t posX;
+	int16_t posY;
+	uint8_t direction;
 };
 /***********************************Structures**************************************/
 
@@ -39,7 +41,9 @@ struct pipe {
 void Update_Bird(void);
 void Update_Pipes(void);
 void Check_ButtonPress(void);
+void Check_JoystickPress(void);
 void Play_StartScreen(void);
+
 
 /*******************************Background Threads**********************************/
 
@@ -48,6 +52,7 @@ void Play_StartScreen(void);
 
 /*******************************Aperiodic Threads***********************************/
 void GPIOE_Handler(void);
+void GPIOD_Handler(void);
 /*******************************Aperiodic Threads***********************************/
 
 
