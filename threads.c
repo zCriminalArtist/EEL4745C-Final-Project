@@ -18,6 +18,7 @@
 #include "./sprites/ceiling_pipe.h"
 #include "./sprites/zero.h"
 #include "./sprites/one.h"
+#include "./sprites/two.h"
 #include "./sprites/pause.h"
 
 #include <stdio.h>
@@ -141,9 +142,19 @@ void Update_Pipes(void) {
 			ST7789_drawImage(ceilingPipe.posX, ceilingPipe.posY, 46, 132, ceiling_pipe_sprite, 1, 0, 0);
 			G8RTOS_SignalSemaphore(&sem_SPIA);
 
-			G8RTOS_WaitSemaphore(&sem_SPIA);
-			ST7789_drawImage(107, 230, 12, 19, one_sprite, 2, 0, 0);
-			G8RTOS_SignalSemaphore(&sem_SPIA);
+			if (score == 1) {
+				G8RTOS_WaitSemaphore(&sem_SPIA);
+				ST7789_drawImage(107, 230, 12, 19, zero_sprite, 2, 0, 0);
+				G8RTOS_SignalSemaphore(&sem_SPIA);
+			} else if (score == 2) {
+				G8RTOS_WaitSemaphore(&sem_SPIA);
+				ST7789_drawImage(107, 230, 12, 19, one_sprite, 2, 0, 0);
+				G8RTOS_SignalSemaphore(&sem_SPIA);
+			} else if (score == 3) {
+				G8RTOS_WaitSemaphore(&sem_SPIA);
+				ST7789_drawImage(107, 230, 12, 19, two_sprite, 2, 0, 0);
+				G8RTOS_SignalSemaphore(&sem_SPIA);
+			}
 		} else {
 			groundPipe.posX = 240;
 			groundPipe.posY = rand() % 60;
@@ -151,8 +162,6 @@ void Update_Pipes(void) {
 			ceilingPipe.posY = groundPipe.posY + 130 + 60;
 			ceilingPipe.direction = 0;
 			round = 0;
-
-			score++;
 		}
 
 //		for (int i = 0; i < 2; i++) {
