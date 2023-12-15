@@ -1,5 +1,8 @@
 # Flappy Bird on TM4C123
 My project is to create a clone of the then popular Flappy Bird mobile game on the TM4C123 in which a player controls a bird, attempting to fly between columns of green pipes without hitting them. The game is rendered on the TFT display, featuring high quality transparent sprites. The bird would be controlled by a tactile button press.
+
+Update: View the finish product [here]([https://website-name.com](https://youtu.be/Iz33P4g_INo))
+
 ### The project implements the following threads, semaphores, schedulers, and buffers, inter-process communication:
 1. Threads
 - Update_Bird (update bird position and check for collision)
